@@ -52,7 +52,13 @@ public class Restaurant {
     List<Order> orders = new ArrayList<>();
 
     @Column(length = 1000)
-    List<String>images;
+    String logoUrl; // URL ảnh logo
+
+    @ElementCollection
+    @CollectionTable(name = "restaurant_gallery", joinColumns = @JoinColumn(name = "restaurant_id"))
+    @Column(name = "gallery_url", length = 1000)
+    List<String> galleryUrls = new ArrayList<>(); // Danh sách URL ảnh gallery
+
 
     LocalDateTime registrationDate;
 
