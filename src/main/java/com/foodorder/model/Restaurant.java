@@ -51,7 +51,6 @@ public class Restaurant {
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true, mappedBy = "restaurant")
     List<Order> orders = new ArrayList<>();
 
-    @ElementCollection
     @Column(length = 1000)
     List<String>images;
 
