@@ -43,7 +43,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain)
             throws ServletException, IOException {
         String jwt = extractJwtFromCookie(request);
         log.info("Extracted JWT for validation: {}", jwt);
@@ -65,6 +65,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         } else {
             log.error("JWT Token is invalid or not found");
         }
+
         filterChain.doFilter(request, response);
     }
 }
