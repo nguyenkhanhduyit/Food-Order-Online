@@ -6,6 +6,7 @@ import com.foodorder.dto.response.CartResponse;
 import com.foodorder.exception.declare.ResourceNotAvailableException;
 import com.foodorder.mapper.CartItemMapper;
 import com.foodorder.mapper.CartMapper;
+import com.foodorder.mapper.IngredientItemMapper;
 import com.foodorder.model.Cart;
 import com.foodorder.model.CartItem;
 import com.foodorder.model.IngredientItem;
@@ -22,9 +23,9 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,46 +38,85 @@ public class CartService implements ICartService {
     IngredientItemRepository ingredientItemRepository;
     CartMapper cartMapper;
     CartItemRepository cartItemRepository;
+    UserService userService;
+    IngredientItemMapper ingredientItemMapper;
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE,
-    timeout = 3,
-    rollbackFor = {
-            Exception.class,
-            ResourceNotAvailableException.class
-    })
-    public CartResponse addCartItemToCart(Long cartId, CartItemRequest request) {
+    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 20,rollbackFor = Exception.class,readOnly = true)
+    public CartResponse getCartFromUser(String token) {
+        /*method get cart from owner*/
+        Cart cart = userService.findUserByToken(token).getCart();
+        return toCartResponse(cart);
+    }
 
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 20,rollbackFor = Exception.class,readOnly = true)
+    public int getTotalQuantityItemInCart(String token) {
+        /*method get number of quantity from cart*/
+        return userService.findUserByToken(token).getCart().getTotalItem();
+    }
+
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 20, rollbackFor = {Exception.class,})
+    public CartResponse addCartItemToCart(String token, CartItemRequest request) {
+        //mapped quantity
         CartItem cartItem = cartItemMapper.toCartItem(request);
+        //assign food for it
         cartItem.setFood(foodRepository.findById(request.getFoodId())
                 .orElseThrow(()-> new ResourceNotAvailableException("Food not found")));
-
+        //calculate total price dependence on quantity and price of food
+        cartItem.setTotalPrice(BigDecimal.valueOf(request.getQuantity()).multiply(cartItem.getFood().getPrice()));
+        //find and assign ingredient item for it
         List<IngredientItem> ingredientItems = request.getIngredientItemsId()
                         .stream()
-                                .map(
-                                        id -> ingredientItemRepository.findById(id)
-                                                .orElseThrow(()-> new ResourceNotAvailableException("Ingredient Item not found"))
-                                )
-                                        .toList();
-
-        cartItem.setIngredientItems(ingredientItems);
-
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow((()-> new ResourceNotAvailableException("Cart not found")));
-
+                        .map(
+            id -> ingredientItemRepository.findById(id)
+            .orElseThrow(()-> new ResourceNotAvailableException("Ingredient Item not found")))
+                        .toList();
+        cartItem.setIngredientItems(
+                ingredientItems.stream()
+                        .collect(Collectors.toMap(
+                                IngredientItem::getId,
+                                item -> item,
+                                (item1,item2) -> item1
+                        ))
+                        .values()
+                        .stream()
+                        .toList()
+        );
+        //get cart from token
+        Cart cart = userService.findUserByToken(token).getCart();
+        //check whether food existed in cart
         Optional<CartItem> cartItemIsExist = cart.getCartItems()
                 .stream()
-                .filter(item -> item.getFood().getId().equals(cartItem.getFood().getId()))
+                .filter(item ->
+                        {
+                            if (!item.getFood().getId().equals(cartItem.getFood().getId()))
+                                return false;
+                            List<Long> existingIngredientIds = item.getIngredientItems()
+                                    .stream()
+                                    .map(IngredientItem::getId)
+                                    .sorted()
+                                    .toList();
+
+                            List<Long> newIngredientIds = ingredientItems
+                                    .stream()
+                                    .map(IngredientItem::getId)
+                                    .sorted()
+                                    .toList();
+                            return existingIngredientIds.equals(newIngredientIds);
+                        }
+                )
                 .findFirst();
 
-        if(cartItemIsExist.isPresent()){
-            CartItem item = cartItemIsExist.get();
-            BigDecimal newPrice = item.getTotalPrice().add(cartItem.getTotalPrice());
-            item.setTotalPrice(newPrice);
-            item.setQuantity(item.getQuantity() + cartItem.getQuantity());
-        }else{
-            cart.getCartItems().add(cartItem);
+        if(cartItemIsExist.isPresent()) {
+            CartItem existingItem = cartItemIsExist.get();
+            BigDecimal newPrice = existingItem.getTotalPrice().add(cartItem.getTotalPrice());
+            existingItem.setTotalPrice(newPrice);
+            existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
+        } else {
             cartItem.setCart(cart);
+            cart.getCartItems().add(cartItem);
         }
         cart.setTotalPrice(calculatorTotalPriceForCart(cart.getCartItems()));
         cart.setTotalItem(calculatorTotalItemForCart(cart.getCartItems()));
@@ -93,9 +133,8 @@ public class CartService implements ICartService {
     }
 
     @Override
-    public CartResponse removeCartItemFromCart(Long cartId, Long cartItemId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Cart not found"));
+    public CartResponse removeCartItemFromCart(String token,Long cartItemId) {
+        Cart cart = userService.findUserByToken(token).getCart();
         cart.getCartItems().remove(cartItemRepository.findById(cartItemId)
                 .orElseThrow(()-> new ResourceNotAvailableException("Cart Item not found")));
         cart.setTotalPrice(calculatorTotalPriceForCart(cart.getCartItems()));
@@ -103,72 +142,37 @@ public class CartService implements ICartService {
         return toCartResponse(cartRepository.save(cart));
     }
 
-
     @Override
-    public CartResponse getCartByUserId(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(()-> new ResourceNotAvailableException("User not have cart"));
-        return toCartResponse(cart);
-    }
-
-    @Override
-    public boolean checkUserOwnerCart(String userName,Long cartId) {
-        Optional<Cart> cart = cartRepository.checkUserOwnCart(userName,cartId);
-        return cart.isPresent();
-    }
-
-    @Override
-    public CartResponse getCartById(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Cart not found"));
-        return toCartResponse(cart);
-    }
-
-
-    @Override
-    public List<CartItemResponse> getAllCartItemsFromCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Cart not found"));
-        List<CartItem> cartItems = cart.getCartItems();
-        return cartItems.stream().map(cartItem -> {
-            CartItemResponse cartItemResponse = cartItemMapper.toResponse(cartItem);
-            cartItemResponse.setFoodName(cartItem.getFood().getName());
-            cartItemResponse.setImages(cartItem.getFood().getImages());
-            cartItem.getIngredientItems().forEach(
-                    ingredientItem ->
-                        cartItemResponse.getNameIngredientItems().add(ingredientItem.getName())
-            );
-            return cartItemResponse;
-        }).toList();
-    }
-
-    @Override
-    public boolean removeAllCartItemsFromCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Cart not found"));
+    public CartResponse removeAllCartItemsFromCart(String token) {
+        Cart cart = userService.findUserByToken(token).getCart();
         cart.getCartItems().clear();
-        cartRepository.save(cart);
-        return true;
+        cart.setTotalPrice(calculatorTotalPriceForCart(cart.getCartItems()));
+        cart.setTotalItem(calculatorTotalItemForCart(cart.getCartItems()));
+        return toCartResponse(cartRepository.save(cart));
     }
 
-    private CartResponse toCartResponse (Cart request){
+    private CartResponse toCartResponse(Cart request){
+        /*method convert cart to cart response*/
         CartResponse cartResponse = cartMapper.toResponse(cartRepository.save(request));
-        List<CartItemResponse> cartItemResponses = new ArrayList<>();
-        request.getCartItems().forEach(
-                item -> {
-                    cartItemResponses.add(
-                            CartItemResponse.builder()
-                                    .foodName(item.getFood().getName())
-                                    .quantity(item.getQuantity())
-                                    .totalPrice(item.getTotalPrice())
-                                    .nameIngredientItems(
-                                            item.getIngredientItems().stream().map(IngredientItem::getName).toList()
-                                    )
-                                    .images(item.getFood().getImages())
-                                    .build());
-                }
-        );
+        List<CartItemResponse> cartItemResponses = request.getCartItems()
+                .stream()
+                .map(this::toCartItemResponse)
+                .toList();
         cartResponse.setCartItems(cartItemResponses);
         return cartResponse;
     }
+
+    private CartItemResponse toCartItemResponse(CartItem request){
+        /*method convert cart item to cart item response*/
+        CartItemResponse cartItemResponse = cartItemMapper.toResponse(request);
+        cartItemResponse.setFoodImageUrl(request.getFood().getImageUrl());
+        cartItemResponse.setFoodName(request.getFood().getName());
+        cartItemResponse.setIngredientItemResponses(
+                request.getIngredientItems()
+                        .stream()
+                        .map(ingredientItemMapper::toResponse)
+                        .toList());
+        return cartItemResponse;
+    }
+
 }

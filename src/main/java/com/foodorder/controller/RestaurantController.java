@@ -1,9 +1,8 @@
 package com.foodorder.controller;
 
-
 import com.foodorder.dto.request.RestaurantRequest;
 import com.foodorder.dto.response.ApiResponse;
-import com.foodorder.dto.response.RestaurantDTOResponse;
+import com.foodorder.dto.response.FavoriteResponse;
 import com.foodorder.dto.response.RestaurantResponse;
 import com.foodorder.service.RestaurantService;
 import jakarta.validation.Valid;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,91 +19,107 @@ import java.util.List;
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequestMapping("/restaurant")
 @RequiredArgsConstructor
-@Validated
 public class RestaurantController {
 
     RestaurantService restaurantService;
-    @PostMapping("/new-restaurant/{userId}")
-    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication,#userId)")
-    public ResponseEntity<ApiResponse<RestaurantResponse>> createRestaurant(
-            @PathVariable Long userId,
-            @RequestBody @Valid RestaurantRequest request){
+
+    @PostMapping("/new")
+    @PreAuthorize(value = "(@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)" +
+            " and hasRole('ROLE_USER'))" +
+            " or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> createRestaurant(
+            @CookieValue(value = "authToken", required = true) String token,
+            @ModelAttribute @Valid RestaurantRequest request) {
         return ResponseEntity.ok().body(
-                ApiResponse.<RestaurantResponse>builder()
+                ApiResponse.<String>builder()
                         .code(200)
-                        .message(restaurantService.createRestaurant(request, userId)).build());
+                        .message(restaurantService.createRestaurant(request,token))
+                        .build());
+        /*updated and test completed all*/
     }
 
 
-    @PutMapping("/update-restaurant/{userId}/{restaurantId}")
+    @PutMapping("/update/{restaurantId}")
     @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId) )" +
+            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication, #restaurantId) " +
+            "and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ) " +
             "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<RestaurantResponse>> updateRestaurant(
-            @PathVariable("restaurantId")Long restaurantId,
-            @PathVariable("userId") Long userId,
-            @RequestBody @Valid RestaurantRequest request
-    ){
+            @CookieValue(value = "authToken", required = true) String token,
+            @PathVariable Long restaurantId,
+            @ModelAttribute @Valid RestaurantRequest request) {
+        RestaurantResponse response = restaurantService.updateRestaurant(restaurantId, token, request);
         return ResponseEntity.ok().body(
                 ApiResponse.<RestaurantResponse>builder()
                         .code(200)
-                        .message(restaurantService.updateRestaurant(restaurantId,userId,request))
+                        .message(response)
                         .build());
+        /*updated and test completed all*/
     }
 
-    @DeleteMapping("/delete-restaurant/{userId}/{restaurantId}")
-    @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication,#userId)) " +
+
+    @DeleteMapping("/delete/{restaurantId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId)) " +
             "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteRestaurant(
-            @PathVariable("userId")Long userId,
+            @CookieValue(value = "authToken", required = true) String token,
             @PathVariable("restaurantId") Long restaurantId
     ){
-        restaurantService.deleteRestaurant(userId,restaurantId);
+        restaurantService.deleteRestaurant(token,restaurantId);
         return ResponseEntity.ok().body(
                 ApiResponse.<String>builder()
                         .code(200)
                         .message("Restaurant have been deleted")
                         .build());
+        /*updated and test completed all*/
     }
 
-    @PutMapping("/update-restaurant-status/{userId}/{restaurantId}")
-    @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication,#userId))" +
+
+    @PutMapping("/update-status/{restaurantId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId) )" +
             " or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<String>> updateRestaurantStatus(
-            @PathVariable("userId") Long userId,
+            @CookieValue(value = "authToken", required = true) String token,
             @PathVariable("restaurantId") Long restaurantId
     ){
-        restaurantService.updateRestaurantStatus(userId,restaurantId);
+        restaurantService.updateRestaurantStatus(token,restaurantId);
         return ResponseEntity.ok().body(
                 ApiResponse.<String>builder()
                         .code(200)
                         .message("Restaurant Status have been updated")
                         .build());
+        /*Updated and test completed all*/
     }
 
-    @GetMapping("/get-restaurant/{userId}")
+
+    @GetMapping("/get")
     @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication,#userId))" +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) )" +
             " or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<List<RestaurantResponse>>> findRestaurantByUserId(@PathVariable Long userId){
+    public ResponseEntity<ApiResponse<List<RestaurantResponse>>> findRestaurantByUser(
+            @CookieValue(value = "authToken", required = true) String token
+    ){
         return ResponseEntity.ok().body(
                 ApiResponse.<List<RestaurantResponse>>builder()
                         .code(200)
-                        .message(restaurantService.getAllRestaurantsByUserId(userId))
+                        .message(restaurantService.getAllRestaurantsByUserToken(token))
                         .build());
+        /*Updated and test completed all*/
     }
 
-    @GetMapping("/")
-    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
+
+    @GetMapping("/get-all")
     public ResponseEntity<ApiResponse<List<RestaurantResponse>>> getAllRestaurants(){
         return ResponseEntity.ok().body(
                 ApiResponse.<List<RestaurantResponse>>builder()
                         .code(200)
                         .message(restaurantService.getAllRestaurants())
                         .build());
+        /*Updated and testing completed*/
     }
+
 
     @GetMapping("/{query}")
     public ResponseEntity<ApiResponse<List<RestaurantResponse>>> searchRestaurant(
@@ -115,30 +129,38 @@ public class RestaurantController {
                         .code(200)
                 .message(restaurantService.searchRestaurant(query))
                         .build());
+        /*Updated and test completed all*/
     }
 
-    @GetMapping("/{restaurantId}")
-    @PreAuthorize(value = "hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantById(
+
+    @GetMapping("/get/{restaurantId}")
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN') or (hasRole('ROLE_RESTAURANT_OWNER') " +
+            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId))")
+    public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantByRestaurantId(
             @PathVariable Long restaurantId){
         return ResponseEntity.ok().body(
                 ApiResponse.<RestaurantResponse>builder()
                         .code(200)
                         .message(restaurantService.findRestaurantByRestaurantId(restaurantId))
                         .build());
+         /*
+        Updated and test completed
+        */
     }
 
-    @PostMapping("/add-to-favorite/{userId}/{restaurantId}/{foodId}")
-    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication,#userId)")
-    public ResponseEntity<ApiResponse<RestaurantDTOResponse>> addToFavorites(
-            @PathVariable Long userId,
-            @PathVariable Long restaurantId,
-            @PathVariable Long foodId){
+
+    @PostMapping("/favorite/{restaurantId}")
+    @PreAuthorize(value = "hasRole('ROLE_ADMIN') or " +
+            "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ")
+    public ResponseEntity<ApiResponse<FavoriteResponse>> addToFavorites(
+            @CookieValue(value = "authToken", required = true) String token,
+            @PathVariable Long restaurantId){
         return ResponseEntity.ok().body(
-                ApiResponse.<RestaurantDTOResponse>builder()
+                ApiResponse.<FavoriteResponse>builder()
                         .code(200)
-                        .message(restaurantService.addToFavorites(userId,restaurantId,foodId))
+                        .message(restaurantService.addToFavorites(token,restaurantId))
                         .build());
+        /*Updated and test completed all*/
     }
 
 }

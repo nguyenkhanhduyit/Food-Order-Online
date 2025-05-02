@@ -13,13 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "restaurants",
+@Table(name = "restaurants"
+        ,
 uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "instagram"),
-        @UniqueConstraint(columnNames = "x"),
-        @UniqueConstraint(columnNames = "mobile")
-})
+        @UniqueConstraint(columnNames = "user_id")
+}
+)
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Restaurant {
@@ -48,8 +47,8 @@ public class Restaurant {
 
     String openTime;
 
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true, mappedBy = "restaurant")
-    List<Order> orders = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "restaurant")
+    List<OrderItem> orderItems = new ArrayList<>();
 
     @Column(length = 1000)
     String logoUrl; // URL ảnh logo
@@ -59,7 +58,6 @@ public class Restaurant {
     @Column(name = "gallery_url", length = 1000)
     List<String> galleryUrls = new ArrayList<>(); // Danh sách URL ảnh gallery
 
-
     LocalDateTime registrationDate;
 
     boolean isOpen = true;
@@ -67,7 +65,6 @@ public class Restaurant {
     @JsonIgnore
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL,orphanRemoval = true)
     List<Food> foods = new ArrayList<>();
-
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL,orphanRemoval = true)
     List<IngredientCategory> ingredientCategory;

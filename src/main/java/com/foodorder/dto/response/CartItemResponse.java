@@ -11,9 +11,10 @@ import java.util.List;
 @Setter
 @Builder
 public class CartItemResponse {
-    private List<String> images;
+    private Long id;
+    private String foodImageUrl;
     private String foodName;
     private int quantity;
-    private List<String> nameIngredientItems;
+    private List<IngredientItemResponse> ingredientItemResponses;
     private BigDecimal totalPrice;
 }

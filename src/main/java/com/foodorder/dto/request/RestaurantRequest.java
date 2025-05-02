@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,6 +31,23 @@ public class RestaurantRequest {
     @NotBlank(message = "Thiếu thời gian hoạt động của nhà hàng")
     String openTime;
 
-    @NotNull(message = "Thiếu ảnh mô tả nhà hàng")
-    List<String> images;
+    MultipartFile logo;
+
+    List<MultipartFile> gallery;
+
+    public void setName(String name) {
+        this.name = name.trim().replace("  "," ");;
+    }
+
+    public void setDescription(String description) {
+        this.description = description.trim().replace("  "," ");;
+    }
+
+    public void setCuisineType(String cuisineType) {
+        this.cuisineType = cuisineType.trim().replace("  "," ");;
+    }
+
+    public void setOpenTime(String openTime) {
+        this.openTime = openTime.trim().replace("  "," ");;
+    }
 }

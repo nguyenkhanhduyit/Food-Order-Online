@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtUtils {
 
-    private String jwtSecret = "RdieQ1fVKaUXEBGTozXqdyGyuqlzNakokAufGCftoy8CWOCnOONYPqCoJa7NMJ0Z";
+    private String jwtSecret = "Rdi+Q1fVKaUXEBGTozXqdyGyuqlzNakokAufGCftoy8CWOCnOONYPqCoJa7NMJ0Z";
 
     private int expireTime = 323434349;
 

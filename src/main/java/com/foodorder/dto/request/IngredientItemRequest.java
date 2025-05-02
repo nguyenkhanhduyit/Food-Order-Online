@@ -9,6 +9,10 @@ import lombok.Setter;
 @Setter
 public class IngredientItemRequest {
     @NotBlank(message = "Please enter a name of Ingredient Item")
-    @Size(min = 8 , max = 50, message = "Please enter valid length of ingredient item ")
+    @Size(min = 3 , max = 50, message = "Please enter valid length of ingredient item ")
     private String name;
+
+    public void setName(String name) {
+        this.name = name.trim().replace("  "," ");;
+    }
 }

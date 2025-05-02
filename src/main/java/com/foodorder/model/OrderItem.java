@@ -1,8 +1,8 @@
 package com.foodorder.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
@@ -12,14 +12,19 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "order_items")
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     private Food food;
+
+    @ManyToOne
+    private Restaurant restaurant;
 
     private int quantity;
 
@@ -34,6 +39,5 @@ public class OrderItem {
     private List<IngredientItem> ingredients;
 
     @ManyToOne
-    @JsonIgnore
     private Order order;
 }

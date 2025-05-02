@@ -27,57 +27,84 @@ public class FoodCategoryService implements IFoodCategoryService {
     FoodCategoryMapper foodCategoryMapper;
     FoodCategoryRepository foodCategoryRepository;
     RestaurantRepository restaurantRepository;
+    UserService userService;
+
+    static final String CREATE_SUCCESS = " Created Food Category Successfully !!!";
+
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 3,rollbackFor = Exception.class)
-    public FoodCategoryResponse createFoodCategory(Long restaurantId,FoodCategoryRequest request) {
+    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 20,rollbackFor = Exception.class)
+    public String createFoodCategory(String token,Long restaurantId,FoodCategoryRequest request) {
         // assign request to FoodCategory
         FoodCategory newFooCategory = foodCategoryMapper.toFoodCategory(request);
         // find restaurant from restaurant id if not found throw exception
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+        Restaurant restaurant = userService.findUserByToken(token)
+                        .getRestaurants()
+                .stream()
+                .filter(i->i.getId().toString().equals(restaurantId.toString()))
+                .findFirst()
                 .orElseThrow(()-> new ResourceNotAvailableException("Restaurant Not Found With This Id"));
+
         newFooCategory.setRestaurant(restaurant);
         //check whether FoodCategory already exist in Restaurant yet?
         restaurant.getFoodCategories().forEach(
                 foodCategory -> {
-                    if(foodCategory.getName().equals(newFooCategory.getName().toLowerCase()))
-                        throw new ResourceAlreadyExistException("FoodCategory Already");
+                    if(foodCategory.getName().equalsIgnoreCase(newFooCategory.getName()))
+                        throw new ResourceAlreadyExistException("FoodCategory name already");
                 }
         );
         restaurant.getFoodCategories().add(newFooCategory);
         restaurantRepository.save(restaurant);
-        return foodCategoryMapper.toResponse(newFooCategory);
+        return CREATE_SUCCESS;
+        /*Updated and test completed all*/
     }
 
+
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 3,rollbackFor = Exception.class)
-    public FoodCategoryResponse updateFoodCategory(Long restaurantId,Long foodCategoryId,FoodCategoryRequest request) {
+    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 20,rollbackFor = Exception.class)
+    public FoodCategoryResponse updateFoodCategory(String token,
+                                                   Long restaurantId,
+                                                   Long foodCategoryId,
+                                                   FoodCategoryRequest request) {
         //find Restaurant from Db
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Restaurant Not Found By This Id"));
+        Restaurant restaurant = userService.findUserByToken(token)
+                .getRestaurants()
+                .stream()
+                .filter(i -> i.getId().toString().equals(restaurantId.toString()))
+                .findFirst()
+                .orElseThrow(()-> new ResourceNotAvailableException("Restaurant Not Found With This Id"));
         // get FoodCategory from Restaurant
-        FoodCategory foodCategory = foodCategoryRepository.findById(foodCategoryId)
+        FoodCategory foodCategory = restaurant.getFoodCategories()
+                .stream()
+                .filter(i -> i.getId().toString().equals(foodCategoryId.toString()))
+                .findFirst()
                 .orElseThrow(()-> new ResourceNotAvailableException("FoodCategory Not Found By This Id"));
-        if(!restaurant.getFoodCategories().contains(foodCategory))
-            throw new ResourceAlreadyExistException("FoodCategory Not Exist In Restaurant To Update");
-        int index = restaurant.getFoodCategories().indexOf(foodCategory);
-        restaurant.getFoodCategories().get(index).setName(request.getName());
-        restaurantRepository.save(restaurant);
         foodCategory.setName(request.getName());
+        restaurantRepository.save(restaurant);
         return foodCategoryMapper.toResponse(foodCategory);
+        /*Updated and test completed all*/
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 3,rollbackFor = Exception.class)
-    public boolean deleteFoodCategory(Long restaurantId,Long foodCategoryId) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new ResourceNotAvailableException("Restaurant Not Found By This Id"));
-        FoodCategory foodCategory = foodCategoryRepository.findById(foodCategoryId)
+    @Transactional(isolation = Isolation.SERIALIZABLE,timeout = 20,rollbackFor = Exception.class)
+    public boolean deleteFoodCategory(String token,Long restaurantId,Long foodCategoryId) {
+        Restaurant restaurant = userService.findUserByToken(token)
+                .getRestaurants()
+                .stream()
+                .filter(i -> i.getId().toString().equals(restaurantId.toString()))
+                .findFirst()
+                .orElseThrow(()-> new ResourceNotAvailableException("Restaurant Not Found With This Id"));
+        FoodCategory foodCategory = restaurant.getFoodCategories()
+                .stream()
+                .filter(i -> i.getId().toString().equals(foodCategoryId.toString()))
+                .findFirst()
                 .orElseThrow(()-> new ResourceNotAvailableException("FoodCategory Not Found By This Id"));
         restaurant.getFoodCategories().remove(foodCategory);
         restaurantRepository.save(restaurant);
         return true;
+        /*Updated and test completed all*/
     }
+
 
     @Transactional(readOnly = true)
     @Override
@@ -96,9 +123,9 @@ public class FoodCategoryService implements IFoodCategoryService {
                         .getFoodCategories()
                         .stream()
                         .filter(foodCategory ->
-                                    foodCategory.getId().equals(foodCategoryId))
+                                    foodCategory.getId().toString().equals(foodCategoryId.toString()))
                         .findFirst()
-                        .orElseThrow(()-> new ResourceNotAvailableException("FoodCategory not found"))
+                        .orElseThrow(()-> new ResourceNotAvailableException("FoodCategory not found with this id"))
         );
     }
 }

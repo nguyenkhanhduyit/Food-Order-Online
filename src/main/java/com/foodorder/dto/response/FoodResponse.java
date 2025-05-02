@@ -1,8 +1,5 @@
 package com.foodorder.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.foodorder.model.*;
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class FoodResponse {
+
     private Long id;
 
     private String name;
@@ -23,7 +21,9 @@ public class FoodResponse {
 
     private BigDecimal price;
 
-    private List<String> images;
+    private String imageUrl;
+
+    private List<String> galleryUrls;
 
     private FoodCategoryResponse foodCategoryResponse;
 
@@ -33,7 +33,7 @@ public class FoodResponse {
 
     private boolean isSeasonal;
 
-    private List<IngredientItemResponse> ingredientItemsResponse = new ArrayList<>();
+   private List<IngredientItemInIngredientCategory> ingredientItemInIngredientCategories = new ArrayList<>();
 
     private Date creationDate;
 

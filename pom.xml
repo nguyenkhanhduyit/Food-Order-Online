@@ -6,13 +6,17 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.4.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.foodorder</groupId>
-	<artifactId>Food-Order-Online</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>Food-Order-Online</name>
-	<description>Food Order Online project with Spring Boot</description>
+	<artifactId>Food-Order-Online-by-Nguyen-Khanh-Duy</artifactId>
+	<version>0.0.1</version>
+	<name>Food-Order-Online-by-Nguyen-Khanh-Duy</name>
+	<description>
+		Food Order Online project with Spring Boot develop by Nguyễn Khánh Duy,
+		zalo : nguyenkhanhduyit
+		number phone : 0332672619
+	</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -30,6 +34,13 @@
 		<java.version>22</java.version>
 	</properties>
 	<dependencies>
+
+		<!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44 -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http44</artifactId>
+			<version>1.39.0</version>
+		</dependency>
 		<!-- giới hạn request -->
 		<!-- https://mvnrepository.com/artifact/com.github.vladimir-bukhtoyarov/bucket4j-core -->
 		<dependency>

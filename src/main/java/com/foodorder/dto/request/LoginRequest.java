@@ -18,4 +18,5 @@ public class LoginRequest {
         @NotBlank(message = "INVALID_PASSWORD")
         @Size(min = 7,max = 28 ,message = "INVALID_LENGTH_PASSWORD")
         String password;
+
 }

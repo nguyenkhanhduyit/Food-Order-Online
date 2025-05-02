@@ -17,10 +17,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Contact {
     String email;
-
     String mobile;
-
     String x;
-
     String instagram;
 }

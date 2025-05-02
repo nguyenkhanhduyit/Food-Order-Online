@@ -8,5 +8,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class AddressResponse {
+    private Long id;
+    String numberPhoneContact;
     private String address;
 }

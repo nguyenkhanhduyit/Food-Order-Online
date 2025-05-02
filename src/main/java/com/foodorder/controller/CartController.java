@@ -2,7 +2,6 @@ package com.foodorder.controller;
 
 import com.foodorder.dto.request.CartItemRequest;
 import com.foodorder.dto.response.ApiResponse;
-import com.foodorder.dto.response.CartItemResponse;
 import com.foodorder.dto.response.CartResponse;
 import com.foodorder.service.CartService;
 import jakarta.validation.Valid;
@@ -10,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/cart")
@@ -21,71 +18,77 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping(value = "/")
-    public ResponseEntity<ApiResponse<List<CartItemResponse>>> getAllCartItemsFromCart(
-            @RequestParam Long cartId
-    ){
-        return ResponseEntity.ok().body(
-                ApiResponse.<List<CartItemResponse>>builder()
-                        .code(200)
-                        .message(cartService.getAllCartItemsFromCart(cartId))
-                        .build()
-        );
-    }
-
-    @GetMapping(value = "/get-cart/")
-    @PreAuthorize(value = " hasRole('ROLE_USER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirOwnData(#authentication,#userId)")
-    public ResponseEntity<ApiResponse<CartResponse>> getCartByUserId(
-            @RequestParam Long userId
+    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)")
+    public ResponseEntity<ApiResponse<CartResponse>> getCartFromUser(
+            @CookieValue(name = "authToken",required = true) String token
     ){
         return ResponseEntity.ok().body(
                 ApiResponse.<CartResponse>builder()
                         .code(200)
-                        .message(cartService.getCartByUserId(userId))
+                        .message(cartService.getCartFromUser(token))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
-    @PostMapping(value = "/add/")
-    @PreAuthorize(value = " hasRole('ROLE_USER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirCartOwnData(authentication,#cartId) ")
+
+    @GetMapping(value = "/total-quantity")
+    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)")
+    public ResponseEntity<ApiResponse<Integer>> getNumberOfTotalFromCart(
+            @CookieValue(name = "authToken",required = true) String token
+    ){
+        return ResponseEntity.ok().body(
+                ApiResponse.<Integer>builder()
+                        .code(200)
+                        .message(cartService.getTotalQuantityItemInCart(token))
+                        .build()
+        );
+        /*Updated and test completed all*/
+    }
+
+
+    @PostMapping(value = "/add")
+    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)")
     public ResponseEntity<ApiResponse<CartResponse>> addCartItemToCart(
-            @RequestParam Long cartId,
-            @RequestBody @Valid CartItemRequest request
+            @CookieValue(name = "authToken",required = true) String token,
+            @ModelAttribute @Valid CartItemRequest request
     ){
         return ResponseEntity.ok().body(
                 ApiResponse.<CartResponse>builder()
                         .code(200)
-                        .message(cartService.addCartItemToCart(cartId,request))
+                        .message(cartService.addCartItemToCart(token,request))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
-    @DeleteMapping(value = "/remove/")
-    @PreAuthorize(value = " hasRole('ROLE_USER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirCartOwnData(authentication,#cartId) ")
-    public ResponseEntity<ApiResponse<String>> removeCartItemFromCart(
-           @RequestParam Long cartId, @RequestParam Long cartItemId
+    @DeleteMapping(value = "/remove/{cartItemId}")
+    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)")
+    public ResponseEntity<ApiResponse<CartResponse>> removeCartItemFromCart(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long cartItemId
     ){
-        cartService.removeCartItemFromCart(cartId,cartItemId);
         return ResponseEntity.ok().body(
-                ApiResponse.<String>builder()
+                ApiResponse.<CartResponse>builder()
                         .code(200)
-                        .message("Cart Item has been deleted !")
+                        .message(cartService.removeCartItemFromCart(token,cartItemId))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
 
-    @DeleteMapping(value = "/remove-all/")
-    public ResponseEntity<ApiResponse<Boolean>> removeAllCartItemsFromCart(
-            @RequestParam Long cartId
+    @DeleteMapping(value = "/remove")
+    @PreAuthorize(value = "@CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)")
+    public ResponseEntity<ApiResponse<CartResponse>> removeAllCartItemsFromCart(
+            @CookieValue(name = "authToken",required = true) String token
     ){
         return ResponseEntity.ok().body(
-                ApiResponse.<Boolean>builder()
+                ApiResponse.<CartResponse>builder()
                         .code(200)
-                        .message(cartService.removeAllCartItemsFromCart(cartId))
+                        .message(cartService.removeAllCartItemsFromCart(token))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 }

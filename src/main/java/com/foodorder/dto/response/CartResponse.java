@@ -1,19 +1,21 @@
 package com.foodorder.dto.response;
 
-import com.foodorder.model.CartItem;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
+
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CartResponse {
-    private Long id;
-    private List<CartItemResponse> cartItems = new ArrayList<>();
-    private BigDecimal totalPrice;
-    private int totalItem;
+     Long id;
+     List<CartItemResponse> cartItems;
+     BigDecimal totalPrice;
+     int totalItem;
 }

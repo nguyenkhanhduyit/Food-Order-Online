@@ -8,9 +8,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +23,6 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AuthTokenFilter extends OncePerRequestFilter {
 
@@ -33,10 +32,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private String extractJwtFromCookie(HttpServletRequest request) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("authToken") && !cookie.getValue().isBlank()) {
-                    log.info("Found token in cookie: {}", cookie.getValue());
+                if (cookie.getName().equals("authToken") && !cookie.getValue().isBlank())
                     return cookie.getValue();
-                }
             }
         }
         return null;
@@ -46,7 +43,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain)
             throws ServletException, IOException {
         String jwt = extractJwtFromCookie(request);
-        log.info("Extracted JWT for validation: {}", jwt);
         if (jwt != null && !jwt.isBlank() && jwtUtils.validateToken(jwt)) {
             try {
                 String username = jwtUtils.retrieveEmailFromToken(jwt);
@@ -56,16 +52,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (UsernameNotFoundException e) {
-                log.error("User not found: {}", e.getMessage());
                 throw new ResourceNotAvailableException(e.getMessage());
             } catch (Exception e) {
-                log.error("Error in filter: {}", e.getMessage());
                 throw new RuntimeException(e);
             }
-        } else {
-            log.error("JWT Token is invalid or not found");
         }
-
         filterChain.doFilter(request, response);
     }
 }

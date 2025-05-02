@@ -20,22 +20,68 @@ public class FoodCategoryController {
 
     @PostMapping(value = "/new/{restaurantId}")
     @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId))" +
-            " or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<FoodCategoryResponse>> createFoodCategory(
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)) " +
+            " or hasRole('ROLE_ADMIN') ")
+    public ResponseEntity<ApiResponse<String>> createFoodCategory(
+            @CookieValue(name = "authToken", required = true) String token,
             @PathVariable Long restaurantId,
             @RequestBody @Valid FoodCategoryRequest request
             ){
-        return ResponseEntity.ok()
-                .body(
-ApiResponse.<FoodCategoryResponse>builder()
-        .code(200)
-        .message(foodCategoryService.createFoodCategory(restaurantId,request))
-        .build()
+        return ResponseEntity.ok().body(
+                ApiResponse.<String>builder()
+                        .code(200)
+                        .message(foodCategoryService.createFoodCategory(token,restaurantId,request))
+                        .build()
                 );
+        /*Updated and test completed all*/
     }
 
-    @GetMapping(value = "/get-all/{restaurantId}")
+
+    @PutMapping(value = "/update/{restaurantId}/{foodCategoryId}")
+    @PreAuthorize(value = " (hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)) " +
+            " or hasRole('ROLE_ADMIN') ")
+    public ResponseEntity<ApiResponse<FoodCategoryResponse>> updateFoodCategory(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long restaurantId,
+            @PathVariable Long foodCategoryId,
+            @RequestBody @Valid FoodCategoryRequest request
+    ){
+        return ResponseEntity.ok()
+                .body(
+                        ApiResponse.<FoodCategoryResponse>builder()
+                                .code(200)
+.message(foodCategoryService.updateFoodCategory(token,restaurantId,foodCategoryId,request))
+                                .build()
+                );
+        /*Updated and test completed all*/
+    }
+
+
+
+    @DeleteMapping(value = "/remove/{restaurantId}/{foodCategoryId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication)) " +
+            " or hasRole('ROLE_ADMIN') ")
+    public ResponseEntity<ApiResponse<String>> deleteFoodCategory(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long restaurantId,
+            @PathVariable Long foodCategoryId
+    ){
+        return ResponseEntity.ok()
+                .body(
+                        ApiResponse.<String>builder()
+                                .code(200)
+.message(foodCategoryService.deleteFoodCategory(token,restaurantId,foodCategoryId)?
+        "Delete Food Category Successfully" : "Delete Food Category Failed")
+                                .build()
+                );
+        /*Updated and test completed all*/
+    }
+
+
+
+    @GetMapping(value = "/get/{restaurantId}")
     public ResponseEntity<ApiResponse<List<FoodCategoryResponse>>> getAllFoodCategoriesInRestaurant(
             @PathVariable Long restaurantId
     ){
@@ -46,9 +92,11 @@ ApiResponse.<FoodCategoryResponse>builder()
                                 .message(foodCategoryService.getAllFoodCategoriesInRestaurant(restaurantId))
                                 .build()
                 );
+        /*Updated and test completed all*/
     }
 
-    @GetMapping(value = "/get-one/{restaurantId}/{foodCategoryId}")
+
+    @GetMapping(value = "/get/{restaurantId}/{foodCategoryId}")
     public ResponseEntity<ApiResponse<FoodCategoryResponse>> getAllFoodCategoryById(
             @PathVariable Long restaurantId,
             @PathVariable Long foodCategoryId
@@ -57,45 +105,15 @@ ApiResponse.<FoodCategoryResponse>builder()
                 .body(
                         ApiResponse.<FoodCategoryResponse>builder()
                                 .code(200)
-                                .message(foodCategoryService.getFoodCategoryById(restaurantId,foodCategoryId))
+.message(foodCategoryService.getFoodCategoryById(restaurantId,foodCategoryId))
                                 .build()
                 );
+        /*Updated and test completed all*/
     }
 
-    @PutMapping(value = "/update/{restaurantId}/{foodCategoryId}")
-    @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId)) " +
-            "or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<FoodCategoryResponse>> updateFoodCategory(
-            @PathVariable Long restaurantId,
-            @PathVariable Long foodCategoryId,
-            @RequestBody @Valid FoodCategoryRequest request
-    ){
-        return ResponseEntity.ok()
-                .body(
-                        ApiResponse.<FoodCategoryResponse>builder()
-                                .code(200)
-                                .message(foodCategoryService.updateFoodCategory(restaurantId,foodCategoryId,request))
-                                .build()
-                );
-    }
 
-    @DeleteMapping(value = "/remove/{restaurantId}/{foodCategoryId}")
-    @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId)) " +
-            "or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<Boolean>> deleteFoodCategory(
-            @PathVariable Long restaurantId,
-            @PathVariable Long foodCategoryId
-    ){
-        return ResponseEntity.ok()
-                .body(
-                        ApiResponse.<Boolean>builder()
-                                .code(200)
-                                .message(foodCategoryService.deleteFoodCategory(restaurantId,foodCategoryId))
-                                .build()
-                );
-    }
+
+
 
 
 }

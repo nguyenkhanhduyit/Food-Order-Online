@@ -44,7 +44,18 @@ exception -> exception.authenticationEntryPoint(new JwtAuthenticationEntryPoint(
 .authorizeHttpRequests(
 authorize ->
 authorize.requestMatchers("/api/**").hasAnyRole("RESTAURANT_OWNER","ADMIN")
-         .requestMatchers("/auth/**","/user/**","/admin/**","/restaurant/**").permitAll()
+         .requestMatchers(
+         "/auth/**",
+                 "/user/**",
+                 "/admin/**",
+                 "/restaurant/**",
+                 "/ingredient-category/**",
+                 "/ingredient-item/**",
+                 "/food-category/**",
+                 "/food/**",
+                 "/cart/**",
+                 "/order/**"
+         ).permitAll()
          .anyRequest().authenticated()
                     )
                 .addFilterBefore(rateLimitPerMinuteFilter(), UsernamePasswordAuthenticationFilter.class)

@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant,Long> {
 
-    @Query(value = "SELECT r FROM restaurants r "
+    @Query(value = "SELECT * FROM restaurants r "
             +" WHERE lower(r.name) LIKE lower(concat('%',:query,'%')) "
             +" or lower(r.cuisine_type) LIKE lower(concat('%',:query,'%'))"
             ,nativeQuery = true)

@@ -15,35 +15,46 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "foods",uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+@Table(name = "foods",uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id","name"}))
 public class Food {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name",columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
     private String name;
 
     private String description;
 
     private BigDecimal price;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     private FoodCategory foodCategory;
 
-    @ElementCollection
     @Column(length = 1000)
-    private List<String> images;
+    String imageUrl; // URL ảnh món ăn từ Cloudinary
 
-    private boolean available;
+    @ElementCollection
+            @CollectionTable(name = "food_gallery",joinColumns = @JoinColumn(name = "food_id"))
+            @Column(name = "gallery",length = 1000)
+    List<String> galleryUrls = new ArrayList<>();
 
-    @ManyToOne
-    @JsonIgnore
+    private boolean available = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id",nullable = false)
     private Restaurant restaurant;
 
-    private boolean isVegetarian;
+    private boolean isVegetarian = false;
 
-    private boolean isSeasonal;
+    private boolean isSeasonal = false;
+
+    @ElementCollection
+    @CollectionTable(name = "food_ingredient_categories",joinColumns = @JoinColumn(name = "food_id"))
+    @Column(name = "ingredient_categories_id")
+    private List<IngredientCategory> ingredientCategories = new ArrayList<>();
 
     @ManyToMany
     private List<IngredientItem> ingredientItems = new ArrayList<>();

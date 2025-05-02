@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-01T00:00:40+0700",
+    date = "2025-05-02T18:01:21+0700",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -27,10 +27,6 @@ public class FoodMapperImpl implements FoodMapper {
         food.setName( request.getName() );
         food.setDescription( request.getDescription() );
         food.setPrice( request.getPrice() );
-        List<String> list = request.getImages();
-        if ( list != null ) {
-            food.setImages( new ArrayList<String>( list ) );
-        }
         food.setAvailable( request.isAvailable() );
         food.setVegetarian( request.isVegetarian() );
         food.setSeasonal( request.isSeasonal() );
@@ -50,9 +46,10 @@ public class FoodMapperImpl implements FoodMapper {
         foodResponse.setName( request.getName() );
         foodResponse.setDescription( request.getDescription() );
         foodResponse.setPrice( request.getPrice() );
-        List<String> list = request.getImages();
+        foodResponse.setImageUrl( request.getImageUrl() );
+        List<String> list = request.getGalleryUrls();
         if ( list != null ) {
-            foodResponse.setImages( new ArrayList<String>( list ) );
+            foodResponse.setGalleryUrls( new ArrayList<String>( list ) );
         }
         foodResponse.setAvailable( request.isAvailable() );
         foodResponse.setVegetarian( request.isVegetarian() );
@@ -71,22 +68,6 @@ public class FoodMapperImpl implements FoodMapper {
         food.setName( request.getName() );
         food.setDescription( request.getDescription() );
         food.setPrice( request.getPrice() );
-        if ( food.getImages() != null ) {
-            List<String> list = request.getImages();
-            if ( list != null ) {
-                food.getImages().clear();
-                food.getImages().addAll( list );
-            }
-            else {
-                food.setImages( null );
-            }
-        }
-        else {
-            List<String> list = request.getImages();
-            if ( list != null ) {
-                food.setImages( new ArrayList<String>( list ) );
-            }
-        }
         food.setAvailable( request.isAvailable() );
         food.setVegetarian( request.isVegetarian() );
         food.setSeasonal( request.isSeasonal() );

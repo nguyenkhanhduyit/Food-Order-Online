@@ -26,4 +26,20 @@ public class ContactRequest {
 
     @NotBlank(message = "Instagram is not valid")
     String instagram;
+
+    public void setEmail(String email) {
+        this.email = email.trim().replace("  "," ");;
+    }
+
+    public void setX(String x) {
+        this.x =  x.trim().replace("  "," ");
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile.trim().replace("  "," ");;
+    }
+
+    public void setInstagram(String instagram) {
+        this.instagram = instagram.trim().replace("  "," ");;
+    }
 }

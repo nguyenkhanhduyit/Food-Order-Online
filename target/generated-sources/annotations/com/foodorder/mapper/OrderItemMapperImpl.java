@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-01T00:00:40+0700",
+    date = "2025-05-02T18:01:21+0700",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -20,12 +20,12 @@ public class OrderItemMapperImpl implements OrderItemMapper {
             return null;
         }
 
-        OrderItem orderItem = new OrderItem();
+        OrderItem.OrderItemBuilder orderItem = OrderItem.builder();
 
-        orderItem.setQuantity( request.getQuantity() );
-        orderItem.setTotalPrice( request.getTotalPrice() );
+        orderItem.quantity( request.getQuantity() );
+        orderItem.totalPrice( request.getTotalPrice() );
 
-        return orderItem;
+        return orderItem.build();
     }
 
     @Override

@@ -19,7 +19,6 @@ import java.util.Set;
 @Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "email"),
-                @UniqueConstraint(columnNames = "cart")
         })
 public class User {
 
@@ -36,17 +35,22 @@ public class User {
     @Column(nullable = false)
     String password;
 
+    //url to Cloudinary
+    String avatarUrl;
+
     @Column(nullable = false)
     @ElementCollection
+    @CollectionTable(name = "user_roles",joinColumns = @JoinColumn(name = "user_id"))
     Set<String> roles = new HashSet<>(Set.of(ROLE.ROLE_USER.name()));
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
     List<Order> orders = new ArrayList<>();
 
     @ElementCollection
-    List<RestaurantDTO> favorites = new ArrayList<>();
+    @CollectionTable(name = "user_favorites",joinColumns = @JoinColumn(name = "user_id"))
+    List<Favorite> favorites = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
     List<Address> address = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)

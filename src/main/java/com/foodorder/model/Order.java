@@ -1,6 +1,5 @@
 package com.foodorder.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,28 +15,23 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "orders")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JsonIgnore
     private User user;
 
-    @ManyToOne
-    @JsonIgnore
-    private Restaurant restaurant;
+    private String orderStatus = "The order was ordered";
 
-    private String orderStatus;
+    private Date createAt = new Date();
 
-    private Date createAt;
+    private String addressDelivery;
 
-    @OneToOne(mappedBy = "order",cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private Address deliveryAddress;
+    private String numberPhoneContact;
 
     @OneToMany(mappedBy = "order",cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<OrderItem> orderItems;
 
     private int totalItem;

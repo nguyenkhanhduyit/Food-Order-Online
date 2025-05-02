@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-01T00:00:40+0700",
+    date = "2025-05-02T18:01:21+0700",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -35,8 +35,20 @@ public class FoodCategoryMapperImpl implements FoodCategoryMapper {
 
         FoodCategoryResponse foodCategoryResponse = new FoodCategoryResponse();
 
+        foodCategoryResponse.setId( request.getId() );
         foodCategoryResponse.setName( request.getName() );
 
         return foodCategoryResponse;
+    }
+
+    @Override
+    public FoodCategory updateFoodCategory(FoodCategory target, FoodCategoryRequest request) {
+        if ( request == null ) {
+            return target;
+        }
+
+        target.setName( request.getName() );
+
+        return target;
     }
 }

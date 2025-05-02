@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -23,7 +22,4 @@ public class CartItemRequest {
     @NotNull(message = "Thiếu nguyên liệu cho thực phẩm")
     private List<Long> ingredientItemsId;
 
-    @NotNull(message = "Thiếu tổng tiền cart item")
-    @Positive(message = "Tổng tiền cart item phải > 0")
-    private BigDecimal totalPrice;
 }

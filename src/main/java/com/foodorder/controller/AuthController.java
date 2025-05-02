@@ -4,7 +4,6 @@ import com.foodorder.config.JwtUtils;
 import com.foodorder.dto.request.LoginRequest;
 import com.foodorder.dto.request.UserRequest;
 import com.foodorder.dto.response.ApiResponse;
-import com.foodorder.dto.response.AuthResponse;
 import com.foodorder.service.AuthService;
 import com.foodorder.model.CustomUserDetails;
 import jakarta.servlet.http.Cookie;
@@ -29,19 +28,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AuthController {
-
+        /*
+        Note : All method tested completed
+        */
         AuthService authService;
         AuthenticationManager authenticationManager;
         JwtUtils jwtUtils;
 
         @PostMapping("/login")
-        public ResponseEntity<ApiResponse<AuthResponse>> login(
+        public ResponseEntity<ApiResponse<String>> login(
                 @RequestBody @Valid LoginRequest request,
                 HttpServletResponse response) {
                 Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
                 );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
                 CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
                 String jwt = jwtUtils.generateToken(authentication);
                 Set<String> authorities = user.getAuthorities()
@@ -56,45 +56,38 @@ public class AuthController {
 
                 String cookieHeader = String.format("authToken=%s; Path=/; HttpOnly; SameSite=Strict", jwt);
                 response.setHeader("Set-Cookie", cookieHeader);
-                return ResponseEntity.ok(
-                        ApiResponse.<AuthResponse>builder()
-                                .code(200)
-                                .message(
-                                        AuthResponse.builder()
-                                                .token(jwt)
-                                                .roles(authorities)
-                                                .build()
-                                )
-                                .build());
+                return ResponseEntity.ok().body(
+                        ApiResponse.<String>builder().code(200).message("Login successfully").build());
         }
 
         @PostMapping("/logout")
-        public ResponseEntity<ApiResponse<Boolean>> logout(HttpServletResponse response) {
+        public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
                 Cookie cookie = new Cookie("authToken", null);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
                 cookie.setMaxAge(0);
                 response.addCookie(cookie);
+                SecurityContextHolder.getContext().setAuthentication(null);
                 return ResponseEntity.ok().body(
-                        ApiResponse.<Boolean>builder()
+                        ApiResponse.<String>builder()
                                 .code(200)
-                                .message(true)
+                                .message("Logout successfully")
                                 .build()
                 );
         }
 
         @GetMapping("/protected")
-        public ResponseEntity<ApiResponse<String>> protectedResource(
-                @CookieValue(value = "authToken", required = false) String token) {
+        public ResponseEntity<ApiResponse<Boolean>> protectedResource(
+                @CookieValue(value = "authToken", required = true) String token) {
                 if (token != null && jwtUtils.validateToken(token)) {
-                        return ResponseEntity.ok(ApiResponse.<String>builder()
+                        return ResponseEntity.ok(ApiResponse.<Boolean>builder()
                                 .code(200)
-                                .message("Welcome to protected resource!")
+                                .message(true)
                                 .build());
                 }
-                return ResponseEntity.status(401).body(ApiResponse.<String>builder()
+                return ResponseEntity.status(401).body(ApiResponse.<Boolean>builder()
                         .code(401)
-                        .message("Unauthorized")
+                        .message(false)
                         .build());
         }
 

@@ -16,16 +16,14 @@ import java.util.Map;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request,
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException, ServletException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        //tạo ra Map String Object để values
         Map<String, Object> body = new HashMap<>();
-        body.put("status",HttpServletResponse.SC_UNAUTHORIZED);
-        body.put("error","Unauthorized");
-        body.put("message",authException.getMessage());
-        body.put("path",request.getServletPath());
-        //tạo ra mapper để ánh xạ giá trị vào reponse
+        body.put("code",HttpServletResponse.SC_UNAUTHORIZED);
+        body.put("message","Unauthorized");
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getOutputStream(),body);
     }

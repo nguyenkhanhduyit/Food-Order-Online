@@ -9,4 +9,8 @@ import lombok.Setter;
 public class IngredientCategoryRequest {
     @NotBlank(message = "Hãy nhập tên Ingredient Category")
     private String name;
+
+    public void setName(String name) {
+        this.name = name.trim().replace("  "," ");;
+    }
 }

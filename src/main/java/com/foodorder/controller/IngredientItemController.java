@@ -20,10 +20,11 @@ public class IngredientItemController {
     private final IngredientItemService ingredientItemService;
 
     @PostMapping(value = "/new/{restaurantId}/{ingredientCategoryId}")
-    @PreAuthorize(value = "(hasRole('ROLE_RESTAURANT_OWNER') " +
-            "and @CustomPreAuthorize.isUserRequestingTheirRestaurantOwnData(authentication,#restaurantId)) " +
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ) " +
             "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<IngredientItemResponse>> createIngredientCategory(
+            @CookieValue(name = "authToken",required = true) String token,
             @PathVariable Long restaurantId,
             @PathVariable Long ingredientCategoryId,
             @RequestBody @Valid IngredientItemRequest request
@@ -31,70 +32,103 @@ public class IngredientItemController {
         return ResponseEntity.ok().body(
                 ApiResponse.<IngredientItemResponse>builder()
                         .code(200)
-                        .message(ingredientItemService.createIngredientItem(restaurantId,ingredientCategoryId,request))
+.message(ingredientItemService.createIngredientItem(token,restaurantId,ingredientCategoryId,request))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
-    @GetMapping(value = "/get-one/{ingredientItemId}")
-    public ResponseEntity<ApiResponse<IngredientItemResponse>> getIngredientItemById(
-            @PathVariable Long ingredientItemId
-    ){
-        return ResponseEntity.ok().body(
-                ApiResponse.<IngredientItemResponse>builder()
-                        .code(200)
-                        .message(ingredientItemService.getIngredientItemById(ingredientItemId))
-                        .build()
-        );
-    }
 
-    @GetMapping(value = "/get-all-by-ingredient-category/{ingredientCategoryId}")
-    public ResponseEntity<ApiResponse<List<IngredientItemResponse>>> getAllsIngredientItemByIngredientCategoryId(
-            @PathVariable Long ingredientCategoryId
-    ){
-        return ResponseEntity.ok().body(
-                ApiResponse.<List<IngredientItemResponse>>builder()
-                        .code(200)
-                        .message(ingredientItemService.getAllsIngredientItemByIngredientCategoryId(ingredientCategoryId))
-                        .build()
-        );
-    }
-
-    @PutMapping(value = "/update/{ingredientItemId}")
-    public ResponseEntity<ApiResponse<IngredientItemResponse>> updateIngredientItemById(
+    @PutMapping(value = "/update/{restaurantId}/{ingredientCategoryId}/{ingredientItemId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ) " +
+            "or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<IngredientItemResponse>> updateIngredientItem(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long restaurantId,
+            @PathVariable Long ingredientCategoryId,
             @PathVariable Long ingredientItemId,
             @RequestBody @Valid IngredientItemRequest request
     ){
         return ResponseEntity.ok().body(
                 ApiResponse.<IngredientItemResponse>builder()
                         .code(200)
-                        .message(ingredientItemService.updateIngredientItemById(ingredientItemId,request))
+.message(ingredientItemService.updateIngredientItem(token,restaurantId,ingredientCategoryId,ingredientItemId,request))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
-    @PutMapping(value = "/update-stoke/{ingredientItemId}")
-    public ResponseEntity<ApiResponse<Boolean>> updateStoke(
+
+    @PutMapping(value = "/update-stoke/{restaurantId}/{ingredientCategoryId}/{ingredientItemId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ) " +
+            "or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> updateStoke(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long restaurantId,
+            @PathVariable Long ingredientCategoryId,
             @PathVariable Long ingredientItemId
     ){
         return ResponseEntity.ok().body(
-                ApiResponse.<Boolean>builder()
+                ApiResponse.<String>builder()
                         .code(200)
-                        .message(ingredientItemService.updateStoke(ingredientItemId))
+                        .message(ingredientItemService.updateStoke(token, restaurantId, ingredientCategoryId, ingredientItemId))
                         .build()
         );
+        /*Updated and test completed all*/
     }
 
-    @DeleteMapping(value = "/remove/{ingredientItemId}")
-    public ResponseEntity<ApiResponse<Boolean>> deleteIngredientItem(
+
+
+    @DeleteMapping(value = "/remove/{restaurantId}/{ingredientCategoryId}/{ingredientItemId}")
+    @PreAuthorize(value = "( hasRole('ROLE_RESTAURANT_OWNER') " +
+            " and @CustomPreAuthorize.isUserRequestingTheirOwnData(authentication) ) " +
+            "or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> deleteIngredientItem(
+            @CookieValue(name = "authToken",required = true) String token,
+            @PathVariable Long restaurantId,
+            @PathVariable Long ingredientCategoryId,
             @PathVariable Long ingredientItemId
     ){
         return ResponseEntity.ok().body(
-                ApiResponse.<Boolean>builder()
+                ApiResponse.<String>builder()
                         .code(200)
-                        .message(ingredientItemService.deleteIngredientItemById(ingredientItemId))
+.message(ingredientItemService.deleteIngredientItem(token, restaurantId, ingredientCategoryId, ingredientItemId))
                         .build()
         );
+        /*Updated and test completed all*/
     }
+
+
+    @GetMapping(value = "/get/{restaurantId}/{ingredientCategoryId}/{ingredientItemId}")
+    public ResponseEntity<ApiResponse<IngredientItemResponse>> getIngredientItemById(
+            @PathVariable Long restaurantId,
+            @PathVariable Long ingredientCategoryId,
+            @PathVariable Long ingredientItemId
+    ){
+        return ResponseEntity.ok().body(
+                ApiResponse.<IngredientItemResponse>builder()
+                        .code(200)
+.message(ingredientItemService.getIngredientItemById(restaurantId, ingredientCategoryId, ingredientItemId))
+                        .build()
+        );
+        /*Updated and test completed all*/
+    }
+
+    @GetMapping(value = "/get-all/{restaurantId}/{ingredientCategoryId}")
+    public ResponseEntity<ApiResponse<List<IngredientItemResponse>>> getAllsIngredientItemByIngredientCategoryId(
+            @PathVariable Long restaurantId,
+            @PathVariable Long ingredientCategoryId
+    ){
+        return ResponseEntity.ok().body(
+                ApiResponse.<List<IngredientItemResponse>>builder()
+                        .code(200)
+.message(ingredientItemService.getAllsIngredientItemByIngredientCategoryId(restaurantId,ingredientCategoryId))
+                        .build()
+        );
+        /*Updated and test completed all*/
+    }
+
 
 }

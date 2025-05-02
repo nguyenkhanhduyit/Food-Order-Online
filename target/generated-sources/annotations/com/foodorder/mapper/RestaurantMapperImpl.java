@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-01T00:00:40+0700",
+    date = "2025-05-02T18:01:21+0700",
     comments = "version: 1.6.3, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -42,9 +42,10 @@ public class RestaurantMapperImpl implements RestaurantMapper {
         restaurantResponse.setAddress( addressToAddressResponse( request.getAddress() ) );
         restaurantResponse.setContact( contactToContactResponse( request.getContact() ) );
         restaurantResponse.setOpenTime( request.getOpenTime() );
-        List<String> list = request.getImages();
+        restaurantResponse.setLogoUrl( request.getLogoUrl() );
+        List<String> list = request.getGalleryUrls();
         if ( list != null ) {
-            restaurantResponse.setImages( new ArrayList<String>( list ) );
+            restaurantResponse.setGalleryUrls( new ArrayList<String>( list ) );
         }
         restaurantResponse.setRegistrationDate( request.getRegistrationDate() );
 
@@ -65,10 +66,6 @@ public class RestaurantMapperImpl implements RestaurantMapper {
         restaurant.address( addressRequestToAddress( request.getAddress() ) );
         restaurant.contact( contactRequestToContact( request.getContact() ) );
         restaurant.openTime( request.getOpenTime() );
-        List<String> list = request.getImages();
-        if ( list != null ) {
-            restaurant.images( new ArrayList<String>( list ) );
-        }
 
         return restaurant.build();
     }
@@ -83,22 +80,6 @@ public class RestaurantMapperImpl implements RestaurantMapper {
         target.setDescription( request.getDescription() );
         target.setCuisineType( request.getCuisineType() );
         target.setOpenTime( request.getOpenTime() );
-        if ( target.getImages() != null ) {
-            List<String> list = request.getImages();
-            if ( list != null ) {
-                target.getImages().clear();
-                target.getImages().addAll( list );
-            }
-            else {
-                target.setImages( null );
-            }
-        }
-        else {
-            List<String> list = request.getImages();
-            if ( list != null ) {
-                target.setImages( new ArrayList<String>( list ) );
-            }
-        }
 
         return target;
     }
@@ -111,6 +92,7 @@ public class RestaurantMapperImpl implements RestaurantMapper {
         UserResponse.UserResponseBuilder userResponse = UserResponse.builder();
 
         userResponse.id( user.getId() );
+        userResponse.avatarUrl( user.getAvatarUrl() );
         userResponse.fullName( user.getFullName() );
         userResponse.email( user.getEmail() );
         Set<String> set = user.getRoles();
@@ -128,6 +110,8 @@ public class RestaurantMapperImpl implements RestaurantMapper {
 
         AddressResponse.AddressResponseBuilder addressResponse = AddressResponse.builder();
 
+        addressResponse.id( address.getId() );
+        addressResponse.numberPhoneContact( address.getNumberPhoneContact() );
         addressResponse.address( address.getAddress() );
 
         return addressResponse.build();
@@ -154,6 +138,8 @@ public class RestaurantMapperImpl implements RestaurantMapper {
         }
 
         Address.AddressBuilder address = Address.builder();
+
+        address.numberPhoneContact( addressRequest.getNumberPhoneContact() );
 
         return address.build();
     }
